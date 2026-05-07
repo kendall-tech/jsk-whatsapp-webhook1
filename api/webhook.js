@@ -58,7 +58,7 @@ export default async function handler(req, res) {
 }
 
 async function findManufacturer(phoneNumber) {
-  const formula = encodeURIComponent(`{WhatsApp Number}="${phoneNumber}"`);
+  const formula = encodeURIComponent(`FIND("${phoneNumber}", {WhatsApp Numbers})`);
   const url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Manufacturers?filterByFormula=${formula}&maxRecords=1`;
 
   const response = await fetch(url, {
