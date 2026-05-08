@@ -15,6 +15,7 @@ export default async function handler(req, res) {
   if (req.method === "POST") {
     try {
       const body = req.body;
+      console.log("WEBHOOK PAYLOAD:", JSON.stringify(body, null, 2));
       const value = body.entry?.[0]?.changes?.[0]?.value;
       const message = value?.messages?.[0];
 
