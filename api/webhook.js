@@ -34,7 +34,12 @@ export default async function handler(req, res) {
       const messageType = message.type || "text";
       const bodyText = message.text?.body || `[${messageType} message]`;
       const replyTo = message.context?.id || null;
-      const hasAttachment = ["image", "document", "audio", "video", "sticker"].includes(messageType);
+      const hasAttachment = ["image", "document", "audio", "video", "sticker"].includes(messageType); 
+      // Extract media_id if present
+      let mediaId = null;
+      if (hasAttachment) {
+        mediaId = message[messageType]?.id || null;
+      }
 
       // Look up manufacturer by BSUID first, then phone
       const manufacturerId = await findManufacturer(bsuid, phoneNumber);
@@ -50,6 +55,7 @@ export default async function handler(req, res) {
         messageType,
         replyTo,
         hasAttachment,
+        mediaID
         manufacturerId,
       });
 
@@ -107,6 +113,14 @@ async function createAirtableMessage(msg) {
   if (msg.senderName) fields["Sender Name"] = msg.senderName;
   if (msg.manufacturerId) fields["Manufacturer"] = [msg.manufacturerId];
   if (msg.replyTo) fields["Reply To Message ID"] = msg.replyTo;
+
+  // If there's media, point Airtable at our proxy endpoint
+  if (msg.hasAttachment && msg.mediaId) {
+    const baseUrl = process.env.PUBLIC_BASE_URL || "https://jsk-whatsapp-webhook1.vercel.app";
+    fields["Attachments"] = [
+      { url: `${baseUrl}/api/media?id=${msg.mediaId}` }
+    ];
+  }
 
   const response = await fetch(
     `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/WhatsApp%20Messages`,
