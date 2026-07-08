@@ -31,7 +31,10 @@ export default async function handler(req, res) {
       const senderName = contact?.profile?.name || "";
       const timestamp = new Date(parseInt(message.timestamp) * 1000).toISOString();
       const messageType = message.type || "text";
-      const bodyText = message.text?.body || `[${messageType} message]`;
+      const bodyText =
+        message.text?.body ||
+        message[messageType]?.caption ||
+        `[${messageType} message]`;
       const replyTo = message.context?.id || null;
       const hasAttachment = ["image", "document", "audio", "video", "sticker"].includes(messageType);
 
