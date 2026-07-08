@@ -27,14 +27,15 @@ export default async function handler(req, res) {
       }
 
       const messageId = message.id;
-      const phoneNumber = message.from || ""; // empty if user has privacy
+      const phoneNumber = message.from || "";
       const bsuid = message.from_user_id || contact?.user_id || "";
       const senderName = contact?.profile?.name || "";
       const timestamp = new Date(parseInt(message.timestamp) * 1000).toISOString();
       const messageType = message.type || "text";
       const bodyText = message.text?.body || `[${messageType} message]`;
       const replyTo = message.context?.id || null;
-      const hasAttachment = ["image", "document", "audio", "video", "sticker"].includes(messageType); 
+      const hasAttachment = ["image", "document", "audio", "video", "sticker"].includes(messageType);
+
       // Extract media_id if present
       let mediaId = null;
       if (hasAttachment) {
@@ -55,7 +56,7 @@ export default async function handler(req, res) {
         messageType,
         replyTo,
         hasAttachment,
-        mediaID
+        mediaId,
         manufacturerId,
       });
 
@@ -70,12 +71,10 @@ export default async function handler(req, res) {
 }
 
 async function findManufacturer(bsuid, phoneNumber) {
-  // Try BSUID first
   if (bsuid) {
     const found = await searchManufacturer("WhatsApp BSUIDs", bsuid);
     if (found) return found;
   }
-  // Fall back to phone number
   if (phoneNumber) {
     const found = await searchManufacturer("WhatsApp Numbers", phoneNumber);
     if (found) return found;
@@ -127,17 +126,4 @@ async function createAirtableMessage(msg) {
     {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${process.env.AIRTABLE_TOKEN}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ fields }),
-    }
-  );
-
-  if (!response.ok) {
-    const errText = await response.text();
-    console.error("Airtable error:", response.status, errText);
-  } else {
-    console.log("Message created in Airtable:", msg.messageId);
-  }
-}
+        Authorization:
